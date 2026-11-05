@@ -1,0 +1,16 @@
+{
+  "name": "S20 reach check",
+  "short_name": "S20 reach",
+  "description": "On-site reach checks for the CMC S20 spider lift.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E8EBE7",
+  "theme_color": "#A8271D",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#A8271D">
+<title>S20 reach check</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+
+:root {
+  --paper: #E8EBE7;
+  --sheet: #F4F6F3;
+  --ink: #1F2629;
+  --muted: #5B666A;
+  --line: #C3CAC5;
+  --grid: #D3D9D4;
+  --grid-major: #B1BAB4;
+  --red: #A8271D;
+  --steel: #747E83;
+  --vis: #D9A400;
+  --laser: #C2410C;
+  --ok-bg: #D9EEDF; --ok-ink: #14532D;
+  --warn-bg: #F6EAC4; --warn-ink: #6A4B00;
+  --bad-bg: #F5DCD8; --bad-ink: #8C1D14;
+  --focus: #1D5FB8;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1A1F21; --sheet: #22282A; --ink: #E3E7E4; --muted: #9AA4A7;
+    --line: #3A4246; --grid: #283033; --grid-major: #3A4448;
+    --red: #D9493D; --steel: #8F999E; --vis: #F2C200; --laser: #F28C4B;
+    --ok-bg: #173A27; --ok-ink: #A6E3BB; --warn-bg: #3B3115; --warn-ink: #F2D58A;
+    --bad-bg: #45211D; --bad-ink: #F6B6AE; --focus: #7DB1F5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #1A1F21; --sheet: #22282A; --ink: #E3E7E4; --muted: #9AA4A7;
+  --line: #3A4246; --grid: #283033; --grid-major: #3A4448;
+  --red: #D9493D; --steel: #8F999E; --vis: #F2C200; --laser: #F28C4B;
+  --ok-bg: #173A27; --ok-ink: #A6E3BB; --warn-bg: #3B3115; --warn-ink: #F2D58A;
+  --bad-bg: #45211D; --bad-ink: #F6B6AE; --focus: #7DB1F5;
+  color-scheme: dark;
+}
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 16px/1.45 "Barlow", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+img, svg { max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 14px 16px 48px; }
+.layout { display: grid; gap: 20px; }
+@media (min-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: start; }
+  .stage { position: sticky; top: calc(12px + env(safe-area-inset-top, 0px)); }
+}
+
+/* Header */
+.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin-bottom: 12px; }
+.brand { display: flex; align-items: baseline; gap: 8px; }
+.brand .model {
+  font: 700 2.4rem/1 "Barlow Condensed", "Arial Narrow", sans-serif;
+  color: var(--red); letter-spacing: -0.01em;
+}
+.brand .what { font: 600 1.35rem/1 "Barlow Condensed", "Arial Narrow", sans-serif; }
+.site {
+  flex: 1 1 220px; min-width: 0; border: 0; border-bottom: 2px solid var(--line);
+  background: transparent; padding: 6px 2px; font-size: 1.05rem;
+}
+.site:focus { border-bottom-color: var(--ink); outline: none; }
+
+/* Positions */
+.positions { margin-bottom: 14px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.chip {
+  border: 1.5px solid var(--line); background: transparent; border-radius: 999px;
+  padding: 7px 14px; min-height: 40px; cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.chip.add { border-style: dashed; color: var(--muted); }
+.posrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.posrow input { flex: 1 1 160px; min-width: 0; }
+.hint { color: var(--muted); font-size: 0.9rem; margin: 6px 0 0; }
+
+/* Result */
+.result {
+  border-radius: 10px 10px 0 0; padding: 12px 16px 10px;
+  background: var(--sheet); border: 1px solid var(--line); border-bottom: 0;
+}
+.result[data-state="ok"] { background: var(--ok-bg); color: var(--ok-ink); border-color: transparent; }
+.result[data-state="warn"] { background: var(--warn-bg); color: var(--warn-ink); border-color: transparent; }
+.result[data-state="bad"] { background: var(--bad-bg); color: var(--bad-ink); border-color: transparent; }
+.verdict { font: 700 2.1rem/1.05 "Barlow Condensed", "Arial Narrow", sans-serif; }
+.verdict-detail { font-weight: 600; margin-top: 2px; }
+.pose { font-size: 0.92rem; margin-top: 6px; opacity: 0.9; }
+.diagram {
+  margin: 0; background: var(--sheet); border: 1px solid var(--line); border-top: 0;
+  border-radius: 0 0 10px 10px; overflow: hidden;
+}
+.diagram svg { display: block; width: 100%; height: auto; max-height: 72vh; }
+.diagram figcaption { color: var(--muted); font-size: 0.82rem; padding: 6px 12px 10px; }
+
+/* SVG styling */
+.g { stroke: var(--grid); stroke-width: 1; }
+.gM { stroke: var(--grid-major); stroke-width: 1.4; }
+.axis { fill: var(--muted); font: 500 22px "Barlow", sans-serif; }
+.ground { stroke: var(--ink); stroke-width: 4; }
+.env { fill: none; stroke: var(--muted); stroke-width: 2.5; stroke-dasharray: 10 8; }
+.envlabel { fill: var(--muted); font: 500 21px "Barlow", sans-serif; }
+.red { fill: var(--red); }
+.steel { fill: var(--steel); }
+.boom { stroke: var(--red); stroke-linecap: round; }
+.inner { stroke: var(--steel); stroke-linecap: round; }
+.leg { stroke: var(--red); stroke-width: 5; stroke-linecap: round; }
+.pivot { fill: var(--sheet); stroke: var(--ink); stroke-width: 2.5; }
+.basket { fill: none; stroke: var(--steel); stroke-width: 3; }
+.bfloor { stroke: var(--steel); stroke-width: 6; }
+.person { stroke: var(--ink); stroke-width: 3.2; stroke-linecap: round; fill: none; }
+.personhead { fill: var(--ink); }
+.laser { stroke: var(--laser); stroke-width: 2.5; stroke-dasharray: 3 7; stroke-linecap: round; }
+.laserdot { fill: var(--laser); }
+.target { fill: none; stroke: var(--vis); stroke-width: 4; }
+.targetdot { fill: var(--vis); }
+.tlabel { fill: var(--ink); font: 600 23px "Barlow", sans-serif; paint-order: stroke; stroke: var(--sheet); stroke-width: 6px; stroke-linejoin: round; }
+.ob { stroke: var(--ink); stroke-width: 4; stroke-linecap: round; }
+.reachline { stroke-width: 3; }
+.reachline.ok { stroke: var(--ok-ink); }
+.reachline.bad { stroke: var(--bad-ink); }
+.reachtick { stroke-width: 3; }
+
+/* Panels */
+.panel { padding: 4px 0 18px; border-top: 1px solid var(--line); }
+.panel:first-child { border-top: 0; }
+.panel h2 { font: 600 1.35rem/1.2 "Barlow Condensed", "Arial Narrow", sans-serif; margin: 14px 0 10px; }
+.seg { display: flex; border: 1.5px solid var(--ink); border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
+.seg button { flex: 1; border: 0; background: transparent; padding: 10px 8px; min-height: 44px; cursor: pointer; font-weight: 500; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.fields { display: grid; gap: 10px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.f { display: grid; gap: 3px; }
+.f > span { font-size: 0.9rem; color: var(--muted); font-weight: 500; }
+.f .inp { display: flex; align-items: center; border: 1.5px solid var(--line); border-radius: 8px; background: var(--sheet); }
+.f .inp:focus-within { border-color: var(--ink); }
+.f input {
+  flex: 1; min-width: 0; border: 0; background: transparent; padding: 10px 10px; min-height: 46px;
+  font-size: 1.15rem; font-weight: 500;
+}
+.f input:focus { outline: none; }
+.f .u { padding-right: 10px; color: var(--muted); }
+.big input { font-size: 1.5rem; font-weight: 600; }
+input[type="text"].plain, .posrow input {
+  border: 1.5px solid var(--line); border-radius: 8px; background: var(--sheet); padding: 9px 10px; min-height: 44px;
+}
+details.more { margin-top: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; background: var(--sheet); }
+details.more summary { cursor: pointer; padding: 12px 0; font-weight: 500; }
+details.more[open] { padding-bottom: 12px; }
+.sub { font-weight: 600; margin: 14px 0 6px; }
+.sub:first-of-type { margin-top: 2px; }
+.note { color: var(--muted); font-size: 0.88rem; margin: 6px 0 0; }
+
+.btn {
+  border: 1.5px solid var(--ink); background: transparent; border-radius: 8px;
+  padding: 10px 14px; min-height: 44px; cursor: pointer; font-weight: 600;
+}
+.btn.primary { background: var(--red); border-color: var(--red); color: #fff; }
+.btn.quiet { border-color: var(--line); font-weight: 500; }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+a.maplink { color: var(--ink); font-weight: 600; }
+
+/* Saved points */
+.plist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pitem {
+  display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center;
+  border-left: 5px solid var(--line); background: var(--sheet); padding: 9px 10px; border-radius: 0 8px 8px 0;
+}
+.pitem[data-state="ok"] { border-left-color: var(--ok-ink); }
+.pitem[data-state="warn"] { border-left-color: var(--vis); }
+.pitem[data-state="bad"] { border-left-color: var(--bad-ink); }
+.pitem .pname { font-weight: 600; background: none; border: 0; padding: 0; text-align: left; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line); }
+.pitem .pmeta { grid-column: 1; color: var(--muted); font-size: 0.9rem; }
+.pitem .premove { grid-row: 1 / span 2; grid-column: 2; }
+.empty { color: var(--muted); }
+textarea.csv { width: 100%; min-height: 160px; margin-top: 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--sheet); padding: 8px; font-size: 0.8rem; }
+.toast { min-height: 1.4em; font-weight: 600; margin-top: 8px; }
+footer { color: var(--muted); font-size: 0.85rem; margin-top: 28px; max-width: 70ch; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .result { transition: background-color 0.25s ease, color 0.25s ease; }
+}
+
+/* App additions */
+[hidden] { display: none !important; }
+.layout { grid-template-columns: minmax(0, 1fr); }
+.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.f, .f .inp { min-width: 0; }
+.f input { width: 100%; }
+.seg button { min-width: 0; }
+@media (min-width: 900px) { .layout { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); } }
+.jobbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.jobbar select {
+  flex: 1 1 200px; min-width: 0; border: 1.5px solid var(--line); border-radius: 8px;
+  background: var(--sheet); padding: 9px 10px; min-height: 44px;
+}
+.pm { border: 0; border-left: 1.5px solid var(--line); background: transparent; min-width: 46px; min-height: 46px; font-size: 1.2rem; cursor: pointer; }
+.livebox { margin-top: 10px; padding: 12px; border: 1.5px solid var(--ink); border-radius: 8px; background: var(--sheet); }
+.livebox .heading { font: 700 2.6rem/1 "Barlow Condensed", "Arial Narrow", sans-serif; }
+.livebox .heading small { font: 500 1rem "Barlow", sans-serif; color: var(--muted); margin-left: 6px; }
+.photo-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+.photo-row img { width: 72px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }
+.pitem { grid-template-columns: auto 1fr auto; }
+.pitem .pthumb { grid-row: 1 / span 2; width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }
+.pitem .pname { grid-column: 2; }
+.pitem .pmeta { grid-column: 2; }
+.pitem .premove { grid-row: 1 / span 2; grid-column: 3; }
+.pitem.nothumb .pname, .pitem.nothumb .pmeta { grid-column: 1 / span 2; }
+.btn.danger { border-color: var(--bad-ink); color: var(--bad-ink); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.offline { display: inline-block; font-size: 0.85rem; font-weight: 600; color: var(--warn-ink); background: var(--warn-bg); padding: 2px 8px; border-radius: 999px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><span class="model">S20</span><span class="what">reach check</span></div>
+    <span class="offline" id="offline" hidden>Offline</span>
+  </header>
+
+  <div class="jobbar">
+    <label class="visually-hidden" for="jobSel">Job</label>
+    <select id="jobSel"></select>
+    <button class="btn quiet" id="newJob" type="button">New job</button>
+  </div>
+  <input id="siteName" class="site" type="text" placeholder="Job name or site address" aria-label="Job name or site address" autocomplete="off" style="width:100%;margin-bottom:14px">
+
+  <section class="positions" aria-label="Machine positions">
+    <div class="chips" id="posChips"></div>
+    <div class="posrow">
+      <input id="posLabel" type="text" aria-label="Position name" placeholder="Position name, e.g. Driveway">
+      <button class="btn" id="gpsBtn" type="button">Set location here</button>
+      <button class="btn quiet" id="removePos" type="button">Remove position</button>
+    </div>
+    <p class="hint" id="locHint">Stand where the centre of the machine would be. Every point you measure is checked from here.</p>
+  </section>
+
+  <div class="layout">
+    <div class="stage">
+      <div class="result" id="result" data-state="idle" aria-live="polite">
+        <div class="verdict" id="verdict">Measure a point</div>
+        <div class="verdict-detail" id="verdictDetail">Enter the laser readings to check the reach.</div>
+        <div class="pose" id="poseLine"></div>
+      </div>
+      <figure class="diagram">
+        <svg id="svg" viewBox="0 0 720 920" role="img" aria-label="Side view of the S20 reaching the measured point"></svg>
+        <figcaption>Side view. Dashed outline is CMC’s working range (19.9 m working height, 10.4 m outreach). The machine is drawn in the pose that reaches the point.</figcaption>
+      </figure>
+    </div>
+
+    <div class="controls">
+      <section class="panel">
+        <h2>Measure a point</h2>
+        <div class="seg" role="group" aria-label="Laser reading type">
+          <button type="button" data-mode="hv" aria-pressed="true">Distance and height</button>
+          <button type="button" data-mode="sa" aria-pressed="false">Slope distance and angle</button>
+        </div>
+        <div class="fields">
+          <div class="two">
+            <label class="f big"><span id="lblA">Horizontal distance</span>
+              <span class="inp"><input id="inA" type="text" inputmode="decimal" enterkeyhint="next" autocomplete="off"><span class="u">m</span></span></label>
+            <label class="f big"><span id="lblB">Height above laser</span>
+              <span class="inp"><input id="inB" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off"><span class="u" id="unitB">m</span><button class="pm" type="button" data-for="inB" aria-label="Switch between above and below the laser">±</button></span></label>
+          </div>
+          <label class="f"><span>Point name</span>
+            <input id="ptName" class="plain" type="text" placeholder="e.g. Front gutter, left corner" autocomplete="off"></label>
+          <label class="f"><span>Compass bearing to the point (for the map)</span>
+            <span class="inp"><input id="bearing" type="text" inputmode="decimal" autocomplete="off"><span class="u">°</span></span></label>
+        </div>
+        <div class="actions">
+          <button class="btn" id="compassBtn" type="button">Use the compass</button>
+          <label class="btn" id="photoLabel">Add photo<input id="photoIn" class="visually-hidden" type="file" accept="image/*" capture="environment"></label>
+        </div>
+        <div class="livebox" id="compassBox" hidden>
+          <div class="heading" id="headingOut">–</div>
+          <p class="note" id="compassNote">Hold the phone upright with the camera pointing at the point. Keep it away from vans, scaffolding and steel.</p>
+          <div class="actions">
+            <button class="btn primary" id="useHeading" type="button" disabled>Use this bearing</button>
+            <button class="btn quiet" id="stopCompass" type="button">Close</button>
+          </div>
+        </div>
+        <div class="photo-row" id="photoRow" hidden>
+          <img id="photoPreview" alt="Photo for this point">
+          <button class="btn quiet" id="photoRemove" type="button">Remove photo</button>
+        </div>
+
+        <details class="more">
+          <summary>Laser height, basket position and clearance</summary>
+          <p class="sub">Laser</p>
+          <label class="f"><span>Laser height above the ground at this position</span>
+            <span class="inp"><input id="laserH" type="text" inputmode="decimal"><span class="u">m</span></span></label>
+          <p class="sub">Basket position at the point</p>
+          <div class="two">
+            <label class="f"><span>Basket floor below the point</span>
+              <span class="inp"><input id="below" type="text" inputmode="decimal"><span class="u">m</span></span></label>
+            <label class="f"><span>Basket front stops short by</span>
+              <span class="inp"><input id="standoff" type="text" inputmode="decimal"><span class="u">m</span></span></label>
+          </div>
+          <p class="note">1.0 m below puts the point at about chest height. The stop-short distance keeps the basket off the wall.</p>
+          <p class="sub">Clearance point (optional)</p>
+          <div class="two">
+            <label class="f"><span>Horizontal distance</span>
+              <span class="inp"><input id="obD" type="text" inputmode="decimal"><span class="u">m</span></span></label>
+            <label class="f"><span>Height above laser</span>
+              <span class="inp"><input id="obH" type="text" inputmode="decimal"><span class="u">m</span><button class="pm" type="button" data-for="obH" aria-label="Switch between above and below the laser">±</button></span></label>
+          </div>
+          <p class="note">Something the boom has to get past, such as the eaves of a single-storey extension. The check warns if the boom or basket passes within 0.5 m of it.</p>
+          <p class="sub">Bluetooth lasers</p>
+          <p class="note">If the laser has a keyboard mode (many Bluetooth models do), pair it with the phone, tap the distance box and press measure. The reading types itself in and the cursor moves to the next box.</p>
+        </details>
+
+        <div class="actions">
+          <button class="btn primary" id="saveBtn" type="button" disabled>Save point</button>
+          <button class="btn quiet" id="clearBtn" type="button">Clear readings</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 id="savedHead">Saved points</h2>
+        <ul class="plist" id="pointList"></ul>
+        <p class="empty" id="emptyList">No points saved at this position yet.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Send and map</h2>
+        <p class="note" style="margin-bottom:4px">Sends a summary, a spreadsheet of every point and the photos.</p>
+        <div class="actions">
+          <button class="btn primary" id="shareBtn" type="button">Send to the office</button>
+          <button class="btn" id="kmlBtn" type="button">Download map file</button>
+          <button class="btn quiet" id="csvBtn" type="button">Download spreadsheet</button>
+        </div>
+        <div class="toast" id="toast" role="status"></div>
+        <details class="more">
+          <summary>Opening the map file</summary>
+          <p>The map file (.kml) opens in Google Earth on a phone or computer. To add it to Google Maps, go to google.com/mymaps, create a map and choose Import. Each machine position shows as a pin with its 10.4 m reach circle, and each point with a bearing shows as its own pin.</p>
+        </details>
+        <div class="actions">
+          <a class="maplink" id="mapLink" href="#" target="_blank" rel="noopener" hidden>Open this position in Google Maps</a>
+        </div>
+        <div class="actions" style="margin-top:24px">
+          <button class="btn danger" id="deleteJob" type="button">Delete this job</button>
+          <button class="btn" id="installBtn" type="button" hidden>Install on this phone</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer>Machine geometry and joint limits are estimates from the CMC S20 technical sheet (12-09-25). This is a planning aid. The manufacturer’s range chart and the operator’s assessment on the day take precedence.</footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // =====================================================================
+  // MACHINE SETTINGS (metres and degrees). Estimates from the CMC sheet.
+  // Keep these the same as the D block in the SketchUp script s20_rig.rb.
+  // =====================================================================
+  var D = { chassis_top: 0.8, lower_x: -0.2, lower_z: 0.4, l1: 3.6, l2: 3.6, upper_len: 4.8,
+            tele_start: 0.3, tele_len: 4.5, tele_max: 4.1, jib: 1.0, basket_drop: 0.5 };
+  var LIM = { sMin: -88, sMax: 0, uMin: -15, uMax: 85, jMin: -60, jMax: 85, jRel: 90 };
+  var BASKET_FRONT = 0.8, CLEAR = 0.5, MAX_OUT = 10.4;
+  var IDLE = { lift: 55, upper: 40, tele: 1.5, jib: 40 };
+
+  function rad(d) { return d * Math.PI / 180; }
+  function deg(r) { return r * 180 / Math.PI; }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+
+  // ---------- Kinematics ----------
+  function headAt(lift) {
+    var s = LIM.sMin + (LIM.sMax - LIM.sMin) * lift / 100;
+    var a1 = rad(90 + s), a2 = rad(90 - s);
+    var p0 = { x: D.lower_x, z: D.chassis_top + D.lower_z };
+    var k = { x: p0.x + D.l1 * Math.cos(a1), z: p0.z + D.l1 * Math.sin(a1) };
+    var h = { x: k.x + D.l2 * Math.cos(a2), z: k.z + D.l2 * Math.sin(a2) };
+    return { p0: p0, k: k, h: h };
+  }
+  var HEADS = [];
+  for (var li = 0; li <= 100; li++) HEADS.push(headAt(li));
+
+  function chain(p) {
+    var hd = headAt(p.lift), h = hd.h;
+    var u = rad(p.upper), j = rad(p.jib), cu = Math.cos(u), su = Math.sin(u);
+    function at(d) { return { x: h.x + d * cu, z: h.z + d * su }; }
+    var tip = at(D.tele_start + p.tele + D.tele_len);
+    var J = { x: tip.x + D.jib * Math.cos(j), z: tip.z + D.jib * Math.sin(j) };
+    return { p0: hd.p0, k: hd.k, h: h, outerEnd: at(D.upper_len), innerStart: at(D.tele_start + p.tele),
+             tip: tip, J: J, floor: J.z - D.basket_drop, bx0: J.x + 0.1, bx1: J.x + BASKET_FRONT };
+  }
+  function segDist(p, a, b) {
+    var dx = b.x - a.x, dz = b.z - a.z, L = dx * dx + dz * dz;
+    var t = L ? ((p.x - a.x) * dx + (p.z - a.z) * dz) / L : 0;
+    t = clamp(t, 0, 1);
+    return Math.hypot(p.x - (a.x + t * dx), p.z - (a.z + t * dz));
+  }
+  function clearance(c, o) {
+    var m = Math.min(segDist(o, c.p0, c.k), segDist(o, c.k, c.h), segDist(o, c.h, c.tip), segDist(o, c.tip, c.J)) - 0.15;
+    var x0 = c.J.x, x1 = c.bx1, z0 = c.floor - 0.1, z1 = c.floor + 1.9;
+    var dx = Math.max(x0 - o.x, 0, o.x - x1), dz = Math.max(z0 - o.z, 0, o.z - z1);
+    return Math.min(m, Math.hypot(dx, dz));
+  }
+  function solve(jx, jz, ob) {
+    var lmin = D.tele_start + D.tele_len, lmax = lmin + D.tele_max, best = null;
+    for (var lift = 0; lift <= 100; lift++) {
+      var h = HEADS[lift].h;
+      for (var jd = LIM.jMin; jd <= LIM.jMax + 1e-9; jd += 2.5) {
+        var jr = rad(jd);
+        var tx = jx - D.jib * Math.cos(jr) - h.x, tz = jz - D.jib * Math.sin(jr) - h.z;
+        var ud = clamp(deg(Math.atan2(tz, tx)), LIM.uMin, LIM.uMax);
+        if (Math.abs(jd - ud) > LIM.jRel) continue;
+        var ur = rad(ud);
+        var l = clamp(tx * Math.cos(ur) + tz * Math.sin(ur), lmin, lmax);
+        var ax = h.x + l * Math.cos(ur) + D.jib * Math.cos(jr);
+        var az = h.z + l * Math.sin(ur) + D.jib * Math.sin(jr);
+        var err = Math.hypot(ax - jx, az - jz);
+        var score = err * 1000 + Math.abs(jd - ud) * 0.02;
+        if (ob && err < 0.05) {
+          var c = clearance(chain({ lift: lift, upper: ud, tele: l - lmin, jib: jd }), ob);
+          if (c < CLEAR) score += 500 + (CLEAR - c) * 100;
+        }
+        if (!best || score < best.score) best = { score: score, err: err, lift: lift, upper: ud, tele: l - lmin, jib: jd };
+      }
+    }
+    return best;
+  }
+  function analyse(m) {
+    var jz = m.h - m.below + D.basket_drop;
+    function jx(r) { return r - m.standoff - BASKET_FRONT; }
+    var sol = solve(jx(m.r), jz, m.ob);
+    var pose = { lift: sol.lift, upper: sol.upper, tele: sol.tele, jib: sol.jib };
+    var ok = sol.err < 0.05;
+    var clear = m.ob ? clearance(chain(pose), m.ob) : null;
+    function reach(r) { return solve(jx(r), jz, null).err < 0.05; }
+    var rmin = null, rmax = null;
+    for (var r = 0; r <= 14.001; r += 0.25) { if (reach(r)) { if (rmin === null) rmin = r; rmax = r; } }
+    if (rmax !== null) {
+      var lo = rmax, hi = rmax + 0.25;
+      for (var i = 0; i < 7; i++) { var mid = (lo + hi) / 2; if (reach(mid)) lo = mid; else hi = mid; }
+      rmax = lo;
+    }
+    return { ok: ok, err: sol.err, pose: pose, clear: clear, rmin: rmin, rmax: rmax };
+  }
+  function verdictOf(m, res) {
+    var f = function (v) { return v.toFixed(1); };
+    if (res.ok && (res.clear === null || res.clear >= CLEAR)) {
+      var spare = Math.max((res.rmax === null ? m.r : res.rmax) - m.r, 0);
+      return { state: 'ok', title: 'Reachable', detail: f(spare) + ' m to spare at this height' };
+    }
+    if (res.ok) return { state: 'warn', title: 'Reachable, but tight',
+      detail: 'The boom or basket passes ' + f(Math.max(res.clear, 0)) + ' m from the clearance point. Check this on site.' };
+    if (res.rmax !== null && m.r > res.rmax) return { state: 'bad', title: 'Out of reach',
+      detail: f(m.r - res.rmax) + ' m too far at this height. Set up about that much closer.' };
+    if (res.rmin !== null && m.r < res.rmin) return { state: 'bad', title: 'Too close in',
+      detail: 'Set up about ' + f(res.rmin - m.r) + ' m further back.' };
+    return { state: 'bad', title: 'Out of reach', detail: 'Too high for the machine at this position. The diagram shows the closest it gets.' };
+  }
+
+  // ---------- Storage ----------
+  var KEY = 's20-site-v2';
+  var DEFAULT_FORM = { mode: 'hv', a: '', b: '', name: '', laserH: '1.5', below: '1.0', standoff: '0.3', bearing: '', obD: '', obH: '' };
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function newPos(n) { return { id: uid(), label: 'Position ' + String.fromCharCode(65 + (n % 26)), lat: null, lng: null, acc: null, points: [] }; }
+  function newJob() { return { id: uid(), name: '', created: new Date().toISOString(), positions: [newPos(0)], active: 0 }; }
+  var store = null;
+  try { store = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { store = null; }
+  if (!store || !Array.isArray(store.jobs) || !store.jobs.length) store = { jobs: [newJob()], activeJob: 0, form: {} };
+  store.form = Object.assign({}, DEFAULT_FORM, store.form || {});
+  if (store.activeJob >= store.jobs.length) store.activeJob = 0;
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) { flash('This phone is out of storage space for the app.'); } }
+  function job() { return store.jobs[store.activeJob]; }
+  function pos() { var j = job(); if (j.active >= j.positions.length) j.active = 0; return j.positions[j.active]; }
+
+  // Photos live in IndexedDB, keyed by point id.
+  var photoDB = (function () {
+    var p = null;
+    function open() {
+      if (!p) p = new Promise(function (res, rej) {
+        if (!window.indexedDB) { rej(new Error('no idb')); return; }
+        var r = indexedDB.open('s20-photos', 1);
+        r.onupgradeneeded = function () { r.result.createObjectStore('photos'); };
+        r.onsuccess = function () { res(r.result); };
+        r.onerror = function () { rej(r.error); };
+      });
+      return p;
+    }
+    function tx(mode, fn) {
+      return open().then(function (db) {
+        return new Promise(function (res, rej) {
+          var t = db.transaction('photos', mode), st = t.objectStore('photos'), out = fn(st);
+          t.oncomplete = function () { res(out && out.result); };
+          t.onerror = function () { rej(t.error); };
+        });
+      });
+    }
+    return {
+      put: function (id, blob) { return tx('readwrite', function (s) { s.put(blob, id); }); },
+      get: function (id) { return tx('readonly', function (s) { return s.get(id); }); },
+      del: function (id) { return tx('readwrite', function (s) { s.delete(id); }).catch(function () {}); }
+    };
+  })();
+
+  // ---------- DOM ----------
+  function $(id) { return document.getElementById(id); }
+  var el = {
+    jobSel: $('jobSel'), newJob: $('newJob'), site: $('siteName'), offline: $('offline'),
+    chips: $('posChips'), posLabel: $('posLabel'), removePos: $('removePos'), gps: $('gpsBtn'), locHint: $('locHint'),
+    result: $('result'), verdict: $('verdict'), vdetail: $('verdictDetail'), poseLine: $('poseLine'), svg: $('svg'),
+    inA: $('inA'), inB: $('inB'), lblA: $('lblA'), lblB: $('lblB'), unitB: $('unitB'), name: $('ptName'),
+    laserH: $('laserH'), below: $('below'), standoff: $('standoff'), bearing: $('bearing'), obD: $('obD'), obH: $('obH'),
+    compassBtn: $('compassBtn'), compassBox: $('compassBox'), headingOut: $('headingOut'), compassNote: $('compassNote'),
+    useHeading: $('useHeading'), stopCompass: $('stopCompass'),
+    photoIn: $('photoIn'), photoRow: $('photoRow'), photoPreview: $('photoPreview'), photoRemove: $('photoRemove'),
+    save: $('saveBtn'), clear: $('clearBtn'), list: $('pointList'), empty: $('emptyList'), savedHead: $('savedHead'),
+    share: $('shareBtn'), kml: $('kmlBtn'), csv: $('csvBtn'), toast: $('toast'), mapLink: $('mapLink'),
+    deleteJob: $('deleteJob'), install: $('installBtn')
+  };
+  var formFields = ['a', 'b', 'name', 'laserH', 'below', 'standoff', 'bearing', 'obD', 'obH'];
+  var formEls = { a: el.inA, b: el.inB, name: el.name, laserH: el.laserH, below: el.below, standoff: el.standoff,
+                  bearing: el.bearing, obD: el.obD, obH: el.obH };
+
+  // Accepts "4.25", "4,25", "4.25 m", "-1.2m" (lasers in keyboard mode may add units)
+  function num(v) {
+    var mt = String(v || '').replace(/,/g, '.').replace(/[−–]/g, '-').match(/-?\d+(?:\.\d+)?/);
+    if (!mt) return null;
+    var n = parseFloat(mt[0]);
+    return isFinite(n) ? n : null;
+  }
+  function flash(t) { el.toast.textContent = t; clearTimeout(flash.t); flash.t = setTimeout(function () { el.toast.textContent = ''; }, 5000); }
+  function slug(t) { return (String(t || '').trim().replace(/[^\w\- ]+/g, '').replace(/\s+/g, '-').toLowerCase()) || 'site'; }
+
+  function setMode(mode) {
+    store.form.mode = mode;
+    document.querySelectorAll('.seg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === mode)); });
+    if (mode === 'hv') { el.lblA.textContent = 'Horizontal distance'; el.lblB.textContent = 'Height above laser'; el.unitB.textContent = 'm'; }
+    else { el.lblA.textContent = 'Slope distance'; el.lblB.textContent = 'Angle up from level'; el.unitB.textContent = '°'; }
+  }
+
+  function readMeasurement(f) {
+    var a = num(f.a), b = num(f.b), lh = num(f.laserH);
+    if (lh === null) lh = 1.5;
+    if (a === null || b === null || a <= 0) return null;
+    var r, h;
+    if (f.mode === 'hv') { r = a; h = lh + b; } else { r = a * Math.cos(rad(b)); h = lh + a * Math.sin(rad(b)); }
+    if (r <= 0) return null;
+    var below = num(f.below), standoff = num(f.standoff), obD = num(f.obD), obH = num(f.obH), br = num(f.bearing);
+    return { r: r, h: h, below: below === null ? 1.0 : below, standoff: standoff === null ? 0.3 : standoff, laserH: lh,
+             ob: (obD !== null && obH !== null && obD > 0) ? { x: obD, z: lh + obH } : null,
+             bearing: br === null ? null : ((br % 360) + 360) % 360 };
+  }
+
+  // ---------- Diagram ----------
+  var X0 = -3.5, X1 = 14.5, Z0 = -1.2, Z1 = 21.8, S = 40;
+  function px(x) { return ((x - X0) * S).toFixed(1); }
+  function py(z) { return ((Z1 - z) * S).toFixed(1); }
+  function line(a, b, cls, w) {
+    return '<line class="' + cls + '" x1="' + px(a.x) + '" y1="' + py(a.z) + '" x2="' + px(b.x) + '" y2="' + py(b.z) + '"' +
+      (w ? ' stroke-width="' + (w * S).toFixed(1) + '"' : '') + '/>';
+  }
+  function rect(x0, z0, x1, z1, cls, rx) {
+    return '<rect class="' + cls + '" x="' + px(x0) + '" y="' + py(z1) + '" width="' + ((x1 - x0) * S).toFixed(1) +
+      '" height="' + ((z1 - z0) * S).toFixed(1) + '"' + (rx ? ' rx="' + rx + '"' : '') + '/>';
+  }
+  function esc(t) { return String(t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c]; }); }
+  var ENVELOPE = (function () {
+    var p = [[0, 0]], i;
+    for (i = 0; i <= 12; i++) { var th = i * Math.PI / 24; p.push([10.4 * Math.sin(th), 8.8 + 11.1 * Math.cos(th)]); }
+    for (i = 0; i <= 6; i++) { var ph = i * Math.PI / 12; p.push([9.6 + 0.8 * Math.cos(ph), 1.5 - 1.5 * Math.sin(ph)]); }
+    return p;
+  })();
+  function render(m, res, name) {
+    var pose = res ? res.pose : IDLE, c = chain(pose), s = '', x, z;
+    for (x = Math.ceil(X0); x <= X1; x++) s += '<line class="' + (x % 5 === 0 ? 'gM' : 'g') + '" x1="' + px(x) + '" y1="0" x2="' + px(x) + '" y2="' + py(Z0) + '"/>';
+    for (z = Math.ceil(Z0); z <= Z1; z++) s += '<line class="' + (z % 5 === 0 ? 'gM' : 'g') + '" x1="0" y1="' + py(z) + '" x2="' + px(X1) + '" y2="' + py(z) + '"/>';
+    [5, 10, 15, 20].forEach(function (v) { s += '<text class="axis" x="8" y="' + (py(v) - 6) + '">' + v + ' m</text>'; });
+    [0, 5, 10].forEach(function (v) { s += '<text class="axis" x="' + (+px(v) + 6) + '" y="' + (+py(0) + 30) + '">' + v + ' m</text>'; });
+    s += '<path class="env" d="M' + ENVELOPE.map(function (q) { return px(q[0]) + ' ' + py(q[1]); }).join(' L') + '"/>';
+    s += '<text class="envlabel" x="' + (+px(6.3)) + '" y="' + (+py(19.6)) + '">CMC working range</text>';
+    s += '<line class="ground" x1="0" y1="' + py(0) + '" x2="' + px(X1) + '" y2="' + py(0) + '"/>';
+    [-1, 1].forEach(function (sx) {
+      s += line({ x: sx * 0.6, z: 0.65 }, { x: sx * 1.37, z: 0.05 }, 'leg');
+      s += rect(sx * 1.37 - 0.15, 0, sx * 1.37 + 0.15, 0.06, 'steel');
+    });
+    s += rect(-0.7, 0.1, 0.7, 0.45, 'steel', 8) + rect(-0.7, 0.45, 0.7, 0.8, 'red', 2);
+    s += rect(-0.95, 0.85, -0.6, 1.25, 'steel', 2) + rect(-0.6, 0.8, 0.5, 1.25, 'red', 3);
+    if (m) {
+      s += line({ x: 0, z: m.laserH }, { x: m.r, z: m.h }, 'laser');
+      s += '<circle class="laserdot" cx="' + px(0) + '" cy="' + py(m.laserH) + '" r="6"/>';
+    }
+    s += line(c.p0, c.k, 'boom', 0.24) + line(c.k, c.h, 'boom', 0.22);
+    s += line(c.h, c.outerEnd, 'boom', 0.3) + line(c.innerStart, c.tip, 'inner', 0.2) + line(c.tip, c.J, 'boom', 0.16);
+    [c.p0, c.k, c.h, c.tip, c.J].forEach(function (p) { s += '<circle class="pivot" cx="' + px(p.x) + '" cy="' + py(p.z) + '" r="6"/>'; });
+    var f = c.floor, mx = (c.bx0 + c.bx1) / 2;
+    s += line(c.J, { x: c.bx0, z: f + 0.35 }, 'inner', 0.1);
+    s += rect(c.bx0, f, c.bx1, f + 1.1, 'basket');
+    s += line({ x: c.bx0, z: f + 0.55 }, { x: c.bx1, z: f + 0.55 }, 'basket');
+    s += line({ x: c.bx0, z: f }, { x: c.bx1, z: f }, 'bfloor');
+    s += '<path class="person" d="M' + px(mx - 0.1) + ' ' + py(f) + ' L' + px(mx) + ' ' + py(f + 0.9) + ' L' + px(mx + 0.1) + ' ' + py(f) +
+         ' M' + px(mx) + ' ' + py(f + 0.9) + ' L' + px(mx) + ' ' + py(f + 1.5) +
+         ' M' + px(mx - 0.25) + ' ' + py(f + 1.15) + ' L' + px(mx) + ' ' + py(f + 1.4) + ' L' + px(mx + 0.3) + ' ' + py(f + 1.3) + '"/>';
+    s += '<circle class="personhead" cx="' + px(mx) + '" cy="' + py(f + 1.66) + '" r="5.5"/>';
+    if (m) {
+      if (res && res.rmax !== null) {
+        var cls = m.r <= res.rmax ? 'ok' : 'bad';
+        s += line({ x: Math.min(m.r, res.rmax), z: m.h }, { x: Math.max(m.r, res.rmax), z: m.h }, 'reachline ' + cls);
+        s += line({ x: res.rmax, z: m.h - 0.35 }, { x: res.rmax, z: m.h + 0.35 }, 'reachtick reachline ' + cls);
+      }
+      if (m.ob) {
+        var o = m.ob, d = 0.22;
+        s += line({ x: o.x - d, z: o.z - d }, { x: o.x + d, z: o.z + d }, 'ob') + line({ x: o.x - d, z: o.z + d }, { x: o.x + d, z: o.z - d }, 'ob');
+        s += '<text class="tlabel" x="' + (+px(o.x) + 14) + '" y="' + (+py(o.z) + 28) + '">Clearance</text>';
+      }
+      s += '<circle class="target" cx="' + px(m.r) + '" cy="' + py(m.h) + '" r="12"/>';
+      s += '<circle class="targetdot" cx="' + px(m.r) + '" cy="' + py(m.h) + '" r="4"/>';
+      var right = m.r > 9.5, tx = +px(m.r) + (right ? -18 : 18);
+      s += '<text class="tlabel" text-anchor="' + (right ? 'end' : 'start') + '" x="' + tx + '" y="' + (+py(m.h) - 14) + '">' + esc(name || 'Point') + '</text>';
+      s += '<text class="tlabel" text-anchor="' + (right ? 'end' : 'start') + '" x="' + tx + '" y="' + (+py(m.h) + 12) + '">' +
+           m.r.toFixed(2) + ' m out, ' + m.h.toFixed(2) + ' m up</text>';
+    }
+    el.svg.innerHTML = s;
+  }
+
+  // ---------- Live check ----------
+  var current = null;
+  function update() {
+    var f = store.form, m = readMeasurement(f);
+    if (!m) {
+      current = null;
+      el.result.dataset.state = 'idle';
+      el.verdict.textContent = 'Measure a point';
+      el.vdetail.textContent = 'Enter the laser readings to check the reach.';
+      el.poseLine.textContent = '';
+      el.save.disabled = true;
+      render(null, null, '');
+      return;
+    }
+    var res = analyse(m), v = verdictOf(m, res), c = chain(res.pose);
+    current = { m: m, res: res, v: v };
+    el.result.dataset.state = v.state;
+    el.verdict.textContent = v.title;
+    el.vdetail.textContent = v.detail;
+    el.poseLine.textContent = (res.ok ? '' : 'Closest pose: ') + 'boom raised ' + Math.round(res.pose.lift) + ' %, upper boom ' +
+      Math.round(res.pose.upper) + '°, telescope out ' + res.pose.tele.toFixed(1) + ' m, jib ' + Math.round(res.pose.jib) +
+      '°. Basket floor at ' + c.floor.toFixed(1) + ' m.';
+    el.save.disabled = false;
+    render(m, res, f.name.trim());
+  }
+  var timer = null;
+  function schedule() { clearTimeout(timer); timer = setTimeout(update, 120); }
+
+  // ---------- Jobs, positions, points ----------
+  function jobTitle(j) {
+    var d = new Date(j.created);
+    var date = isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    return (j.name || 'Untitled job') + (date ? ' (' + date + ')' : '');
+  }
+  function renderJobs() {
+    el.jobSel.innerHTML = '';
+    store.jobs.forEach(function (j, i) {
+      var o = document.createElement('option');
+      o.value = String(i); o.textContent = jobTitle(j); o.selected = i === store.activeJob;
+      el.jobSel.appendChild(o);
+    });
+    el.site.value = job().name || '';
+  }
+  function renderPositions() {
+    var j = job();
+    el.chips.innerHTML = '';
+    j.positions.forEach(function (p, i) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.textContent = p.label || ('Position ' + (i + 1));
+      b.setAttribute('aria-pressed', String(i === j.active));
+      b.addEventListener('click', function () { j.active = i; persist(); renderAll(); });
+      el.chips.appendChild(b);
+    });
+    var add = document.createElement('button');
+    add.type = 'button'; add.className = 'chip add'; add.textContent = '+ Add position';
+    add.addEventListener('click', function () {
+      j.positions.push(newPos(j.positions.length)); j.active = j.positions.length - 1; persist(); renderAll(); el.posLabel.focus();
+    });
+    el.chips.appendChild(add);
+    el.posLabel.value = pos().label;
+    el.removePos.hidden = j.positions.length < 2;
+    showLocation();
+  }
+  function showLocation() {
+    var p = pos();
+    if (p.lat !== null) {
+      el.locHint.textContent = 'Location set: ' + p.lat.toFixed(6) + ', ' + p.lng.toFixed(6) + (p.acc ? ', accurate to about ' + Math.round(p.acc) + ' m.' : '.');
+      el.gps.textContent = 'Update location';
+      el.mapLink.href = 'https://www.google.com/maps/search/?api=1&query=' + p.lat.toFixed(6) + ',' + p.lng.toFixed(6);
+      el.mapLink.hidden = false;
+    } else {
+      el.locHint.textContent = 'Stand where the centre of the machine would be, then set the location. Every point you measure is checked from here.';
+      el.gps.textContent = 'Set location here';
+      el.mapLink.hidden = true;
+    }
+  }
+  var thumbURLs = [];
+  function renderPoints() {
+    thumbURLs.forEach(function (u) { URL.revokeObjectURL(u); }); thumbURLs = [];
+    var pts = pos().points;
+    el.list.innerHTML = '';
+    el.empty.hidden = pts.length > 0;
+    el.savedHead.textContent = pts.length ? 'Saved points (' + pts.length + ')' : 'Saved points';
+    pts.forEach(function (pt, i) {
+      var li = document.createElement('li');
+      li.className = 'pitem' + (pt.photo ? '' : ' nothumb'); li.dataset.state = pt.state;
+      if (pt.photo) {
+        var img = document.createElement('img');
+        img.className = 'pthumb'; img.alt = '';
+        photoDB.get(pt.id).then(function (b) { if (b) { var u = URL.createObjectURL(b); thumbURLs.push(u); img.src = u; } }).catch(function () {});
+        li.appendChild(img);
+      }
+      var nb = document.createElement('button');
+      nb.type = 'button'; nb.className = 'pname'; nb.textContent = pt.form.name || ('Point ' + (i + 1));
+      nb.addEventListener('click', function () {
+        store.form = Object.assign({}, DEFAULT_FORM, pt.form); persist(); fillForm(); update();
+        el.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      var meta = document.createElement('div');
+      meta.className = 'pmeta';
+      meta.textContent = pt.title + '. ' + pt.r.toFixed(2) + ' m out, ' + pt.h.toFixed(2) + ' m up' +
+        (pt.bearing !== null && pt.bearing !== undefined ? ', bearing ' + Math.round(pt.bearing) + '°' : '') + '. ' + pt.detail;
+      var rm = document.createElement('button');
+      rm.type = 'button'; rm.className = 'btn quiet premove'; rm.textContent = 'Remove';
+      rm.setAttribute('aria-label', 'Remove ' + nb.textContent);
+      rm.addEventListener('click', function () {
+        if (!window.confirm('Remove ' + nb.textContent + '?')) return;
+        pts.splice(i, 1); persist(); photoDB.del(pt.id); renderPoints();
+      });
+      li.appendChild(nb); li.appendChild(meta); li.appendChild(rm);
+      el.list.appendChild(li);
+    });
+  }
+  function fillForm() { setMode(store.form.mode); formFields.forEach(function (k) { formEls[k].value = store.form[k]; }); }
+  function renderAll() { renderJobs(); renderPositions(); renderPoints(); }
+
+  // ---------- Form events ----------
+  el.jobSel.addEventListener('change', function () { store.activeJob = +el.jobSel.value; persist(); renderAll(); });
+  el.newJob.addEventListener('click', function () {
+    store.jobs.unshift(newJob()); store.activeJob = 0; persist(); renderAll(); el.site.focus();
+  });
+  el.site.addEventListener('input', function () {
+    job().name = el.site.value; persist();
+    var o = el.jobSel.options[store.activeJob]; if (o) o.textContent = jobTitle(job());
+  });
+  el.deleteJob.addEventListener('click', function () {
+    var j = job();
+    if (!window.confirm('Delete ' + (j.name || 'this job') + ' and everything saved in it? Send it to the office first if you need it.')) return;
+    j.positions.forEach(function (p) { p.points.forEach(function (pt) { photoDB.del(pt.id); }); });
+    store.jobs.splice(store.activeJob, 1);
+    if (!store.jobs.length) store.jobs.push(newJob());
+    store.activeJob = 0; persist(); renderAll();
+  });
+  el.posLabel.addEventListener('input', function () {
+    pos().label = el.posLabel.value; persist();
+    var chip = el.chips.children[job().active]; if (chip) chip.textContent = el.posLabel.value || 'Position';
+  });
+  el.removePos.addEventListener('click', function () {
+    var j = job(), p = pos(), n = p.points.length;
+    if (!window.confirm('Remove ' + (p.label || 'this position') + (n ? ' and its ' + n + ' saved point' + (n > 1 ? 's' : '') : '') + '?')) return;
+    p.points.forEach(function (pt) { photoDB.del(pt.id); });
+    j.positions.splice(j.active, 1); j.active = Math.max(0, j.active - 1); persist(); renderAll();
+  });
+  document.querySelectorAll('.seg button').forEach(function (b) {
+    b.addEventListener('click', function () { setMode(b.dataset.mode); persist(); schedule(); });
+  });
+  formFields.forEach(function (k) {
+    formEls[k].addEventListener('input', function () { store.form[k] = formEls[k].value; persist(); schedule(); });
+  });
+  // Keyboard-mode lasers type the reading and press Enter: move on to the next box.
+  el.inA.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); el.inB.focus(); } });
+  el.inB.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); el.inB.blur(); update(); } });
+  el.obD.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); el.obH.focus(); } });
+  el.obH.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); el.obH.blur(); update(); } });
+  document.querySelectorAll('.pm').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var inp = $(b.dataset.for), v = inp.value.trim();
+      inp.value = v.charAt(0) === '-' ? v.slice(1) : (v ? '-' + v : '-');
+      inp.dispatchEvent(new Event('input')); inp.focus();
+    });
+  });
+
+  // ---------- Photos ----------
+  var pendingPhoto = null, pendingURL = null;
+  function setPending(blob) {
+    if (pendingURL) URL.revokeObjectURL(pendingURL);
+    pendingPhoto = blob; pendingURL = blob ? URL.createObjectURL(blob) : null;
+    el.photoRow.hidden = !blob;
+    if (blob) el.photoPreview.src = pendingURL;
+  }
+  function shrink(file) {
+    if (!window.createImageBitmap) return Promise.resolve(file);
+    return createImageBitmap(file).then(function (bmp) {
+      var max = 1600, k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+      var cv = document.createElement('canvas');
+      cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+      cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+      return new Promise(function (res) { cv.toBlob(function (b) { res(b || file); }, 'image/jpeg', 0.78); });
+    }).catch(function () { return file; });
+  }
+  el.photoIn.addEventListener('change', function () {
+    var f = el.photoIn.files && el.photoIn.files[0];
+    el.photoIn.value = '';
+    if (!f) return;
+    shrink(f).then(setPending);
+  });
+  el.photoRemove.addEventListener('click', function () { setPending(null); });
+
+  // ---------- Save / clear ----------
+  function clearReadings() {
+    ['a', 'b', 'name', 'bearing', 'obD', 'obH'].forEach(function (k) { store.form[k] = ''; });
+    setPending(null); persist(); fillForm(); update();
+  }
+  el.save.addEventListener('click', function () {
+    if (!current) return;
+    var pt = { id: uid(), form: Object.assign({}, store.form), r: current.m.r, h: current.m.h, bearing: current.m.bearing,
+               state: current.v.state, title: current.v.title, detail: current.v.detail, photo: !!pendingPhoto,
+               time: new Date().toISOString() };
+    var blob = pendingPhoto;
+    pos().points.push(pt); persist();
+    var done = function () { clearReadings(); renderPoints(); flash('Point saved.'); el.inA.focus(); };
+    if (blob) photoDB.put(pt.id, blob).then(done).catch(function () { pt.photo = false; persist(); done(); flash('Point saved, but the photo couldn’t be stored.'); });
+    else done();
+  });
+  el.clear.addEventListener('click', function () { clearReadings(); el.inA.focus(); });
+
+  // ---------- GPS ----------
+  el.gps.addEventListener('click', function () {
+    if (!navigator.geolocation) { el.locHint.textContent = 'This browser can’t read the phone’s location.'; return; }
+    var target = pos();
+    el.locHint.textContent = 'Finding your location. Stand still for a few seconds…';
+    el.gps.disabled = true;
+    var best = null, watch = null;
+    function finish() {
+      if (watch !== null) navigator.geolocation.clearWatch(watch);
+      el.gps.disabled = false;
+      if (!best) { el.locHint.textContent = 'No location yet. Check that location is switched on for the phone and for Chrome, then try again outdoors.'; return; }
+      target.lat = best.latitude; target.lng = best.longitude; target.acc = best.accuracy; persist();
+      if (target === pos()) showLocation();
+    }
+    // Watch for up to 12 s and keep the most accurate fix.
+    watch = navigator.geolocation.watchPosition(function (g) {
+      if (!best || g.coords.accuracy < best.accuracy) best = g.coords;
+      el.locHint.textContent = 'Finding your location: accurate to about ' + Math.round(best.accuracy) + ' m so far…';
+      if (best.accuracy <= 5) { clearTimeout(stop); finish(); }
+    }, function (err) {
+      clearTimeout(stop); if (watch !== null) navigator.geolocation.clearWatch(watch); watch = null; el.gps.disabled = false;
+      el.locHint.textContent = err.code === 1
+        ? 'Location permission is off. Allow location for this app in the phone’s settings, then try again.'
+        : 'Couldn’t get a location fix. Try again outdoors, away from the building.';
+    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
+    var stop = setTimeout(finish, 12000);
+  });
+
+  // ---------- Compass ----------
+  var compassOn = false, headingVec = null, lastHeading = null, compassTimer = null;
+  function orientHeading(e) {
+    if (typeof e.webkitCompassHeading === 'number') return e.webkitCompassHeading; // iPhone
+    if (!(e.absolute || e.type === 'deviceorientationabsolute') || e.alpha === null) return null;
+    var a = rad(e.alpha), b = rad(e.beta || 0), g = rad(e.gamma || 0);
+    if (Math.abs(e.beta || 0) < 45) return 360 - e.alpha;           // lying flat: top edge
+    var cA = Math.cos(a), sA = Math.sin(a), cB = Math.cos(b), sB = Math.sin(b), cG = Math.cos(g), sG = Math.sin(g);
+    var vx = -cA * sG - sA * sB * cG, vy = -sA * sG + cA * sB * cG; // upright: direction the camera faces
+    return deg(Math.atan2(vx, vy));
+  }
+  function onOrient(e) {
+    var h = orientHeading(e);
+    if (h === null || !isFinite(h)) return;
+    h = rad(((h % 360) + 360) % 360);
+    var v = { x: Math.sin(h), y: Math.cos(h) };
+    headingVec = headingVec ? { x: headingVec.x * 0.8 + v.x * 0.2, y: headingVec.y * 0.8 + v.y * 0.2 } : v;
+    lastHeading = ((deg(Math.atan2(headingVec.x, headingVec.y)) % 360) + 360) % 360;
+    var dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    el.headingOut.innerHTML = Math.round(lastHeading) + '°<small>' + dirs[Math.round(lastHeading / 45) % 8] + '</small>';
+    el.useHeading.disabled = false;
+    clearTimeout(compassTimer);
+  }
+  function startCompass() {
+    var go = function () {
+      compassOn = true; headingVec = null; lastHeading = null;
+      el.compassBox.hidden = false; el.useHeading.disabled = true; el.headingOut.textContent = '–';
+      el.compassNote.textContent = 'Hold the phone upright with the camera pointing at the point. Keep it away from vans, scaffolding and steel.';
+      if ('ondeviceorientationabsolute' in window) window.addEventListener('deviceorientationabsolute', onOrient);
+      else window.addEventListener('deviceorientation', onOrient);
+      compassTimer = setTimeout(function () {
+        el.compassNote.textContent = 'No compass reading from this phone. Use a compass app and type the bearing in instead.';
+      }, 3000);
+    };
+    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission().then(function (s) { if (s === 'granted') go(); else flash('Compass permission was refused.'); })
+        .catch(function () { flash('Compass isn’t available.'); });
+    } else go();
+  }
+  function stopCompass() {
+    compassOn = false; clearTimeout(compassTimer);
+    window.removeEventListener('deviceorientationabsolute', onOrient);
+    window.removeEventListener('deviceorientation', onOrient);
+    el.compassBox.hidden = true;
+  }
+  el.compassBtn.addEventListener('click', function () { if (compassOn) stopCompass(); else startCompass(); });
+  el.stopCompass.addEventListener('click', stopCompass);
+  el.useHeading.addEventListener('click', function () {
+    if (lastHeading === null) return;
+    el.bearing.value = String(Math.round(lastHeading));
+    el.bearing.dispatchEvent(new Event('input'));
+    stopCompass(); flash('Bearing set to ' + Math.round(lastHeading) + '°.');
+  });
+
+  // ---------- Exports ----------
+  function offset(lat, lng, dist, bearing) {
+    var b = rad(bearing);
+    return { lat: lat + dist * Math.cos(b) / 111320, lng: lng + dist * Math.sin(b) / (111320 * Math.cos(rad(lat))) };
+  }
+  function ptName(pt, i) { return pt.form.name || ('Point ' + (i + 1)); }
+  function photoName(j, p, pt, i) { return slug(j.name) + '_' + slug(p.label) + '_' + slug(ptName(pt, i)) + '.jpg'; }
+  function csvField(v) { var t = v === null || v === undefined ? '' : String(v); return '"' + t.replace(/"/g, '""') + '"'; }
+  function buildCSV() {
+    var j = job();
+    var rows = [['Job', 'Position', 'Machine latitude', 'Machine longitude', 'GPS accuracy (m)', 'Point', 'Result', 'Detail',
+                 'Horizontal distance (m)', 'Height above ground (m)', 'Bearing (deg)', 'Point latitude', 'Point longitude', 'Photo', 'Time']];
+    j.positions.forEach(function (p) {
+      if (!p.points.length) {
+        rows.push([j.name, p.label, p.lat === null ? '' : p.lat.toFixed(7), p.lng === null ? '' : p.lng.toFixed(7), p.acc ? Math.round(p.acc) : '', '', '', '', '', '', '', '', '', '', '']);
+      }
+      p.points.forEach(function (pt, i) {
+        var q = (p.lat !== null && pt.bearing !== null && pt.bearing !== undefined) ? offset(p.lat, p.lng, pt.r, pt.bearing) : null;
+        rows.push([j.name, p.label, p.lat === null ? '' : p.lat.toFixed(7), p.lng === null ? '' : p.lng.toFixed(7), p.acc ? Math.round(p.acc) : '',
+                   ptName(pt, i), pt.title, pt.detail, pt.r.toFixed(2), pt.h.toFixed(2),
+                   pt.bearing === null || pt.bearing === undefined ? '' : Math.round(pt.bearing),
+                   q ? q.lat.toFixed(7) : '', q ? q.lng.toFixed(7) : '', pt.photo ? photoName(j, p, pt, i) : '', pt.time || '']);
+      });
+    });
+    return '\ufeff' + rows.map(function (r) { return r.map(csvField).join(','); }).join('\r\n');
+  }
+  function buildKML() {
+    var j = job(), out = [], any = false;
+    out.push('<?xml version="1.0" encoding="UTF-8"?>',
+      '<kml xmlns="http://www.opengis.net/kml/2.2"><Document>',
+      '<name>' + esc('S20 reach check: ' + (j.name || 'site')) + '</name>',
+      '<Style id="machine"><IconStyle><color>ff1d27a8</color><scale>1.2</scale></IconStyle></Style>',
+      '<Style id="reach"><LineStyle><color>ff1d27a8</color><width>2</width></LineStyle><PolyStyle><color>331d27a8</color></PolyStyle></Style>',
+      '<Style id="ok"><IconStyle><color>ff2d7a1e</color></IconStyle></Style>',
+      '<Style id="warn"><IconStyle><color>ff00b4d9</color></IconStyle></Style>',
+      '<Style id="bad"><IconStyle><color>ff1d1d8c</color></IconStyle></Style>');
+    j.positions.forEach(function (p) {
+      if (p.lat === null) return;
+      any = true;
+      var desc = 'S20 machine centre.' + (p.acc ? ' GPS accuracy about ' + Math.round(p.acc) + ' m.' : '');
+      p.points.forEach(function (pt, i) {
+        desc += '\n' + ptName(pt, i) + ': ' + pt.title + ', ' + pt.r.toFixed(1) + ' m out, ' + pt.h.toFixed(1) + ' m up. ' + pt.detail;
+      });
+      out.push('<Folder><name>' + esc(p.label || 'Position') + '</name>');
+      out.push('<Placemark><name>' + esc((p.label || 'Position') + ': machine') + '</name><description>' + esc(desc) +
+               '</description><styleUrl>#machine</styleUrl><Point><coordinates>' + p.lng.toFixed(7) + ',' + p.lat.toFixed(7) + ',0</coordinates></Point></Placemark>');
+      var ring = [];
+      for (var i = 0; i <= 72; i++) { var q = offset(p.lat, p.lng, MAX_OUT, (i % 72) * 5); ring.push(q.lng.toFixed(7) + ',' + q.lat.toFixed(7) + ',0'); }
+      out.push('<Placemark><name>' + esc((p.label || 'Position') + ': 10.4 m max outreach') + '</name>' +
+               '<description>Turret centre to basket edge, from the CMC range chart.</description><styleUrl>#reach</styleUrl>' +
+               '<Polygon><outerBoundaryIs><LinearRing><coordinates>' + ring.join(' ') + '</coordinates></LinearRing></outerBoundaryIs></Polygon></Placemark>');
+      p.points.forEach(function (pt, i) {
+        if (pt.bearing === null || pt.bearing === undefined) return;
+        var q = offset(p.lat, p.lng, pt.r, pt.bearing);
+        out.push('<Placemark><name>' + esc(ptName(pt, i)) + '</name><description>' +
+                 esc(pt.title + '. ' + pt.r.toFixed(2) + ' m out, ' + pt.h.toFixed(2) + ' m up, bearing ' + Math.round(pt.bearing) + '°. ' + pt.detail) +
+                 '</description><styleUrl>#' + pt.state + '</styleUrl><Point><coordinates>' + q.lng.toFixed(7) + ',' + q.lat.toFixed(7) + ',0</coordinates></Point></Placemark>');
+      });
+      out.push('</Folder>');
+    });
+    out.push('</Document></kml>');
+    return any ? out.join('\n') : null;
+  }
+  function buildSummary() {
+    var j = job(), lines = ['S20 reach check: ' + (j.name || 'untitled job'), new Date().toLocaleString('en-GB'), ''];
+    j.positions.forEach(function (p) {
+      lines.push(p.label + (p.lat !== null ? ' (' + p.lat.toFixed(6) + ', ' + p.lng.toFixed(6) + ')' : ' (no location)'));
+      if (p.lat !== null) lines.push('https://www.google.com/maps/search/?api=1&query=' + p.lat.toFixed(6) + ',' + p.lng.toFixed(6));
+      if (!p.points.length) lines.push('  No points measured.');
+      p.points.forEach(function (pt, i) {
+        lines.push('  ' + ptName(pt, i) + ': ' + pt.title + '. ' + pt.r.toFixed(2) + ' m out, ' + pt.h.toFixed(2) + ' m up. ' + pt.detail);
+      });
+      lines.push('');
+    });
+    lines.push('Geometry is estimated from the CMC S20 sheet. Planning aid only.');
+    return lines.join('\n');
+  }
+  function download(name, data, type) {
+    var blob = new Blob([data], { type: type }), a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  }
+  el.kml.addEventListener('click', function () {
+    var k = buildKML();
+    if (!k) { flash('Set a location for at least one position first.'); return; }
+    download('s20-' + slug(job().name) + '.kml', k, 'application/vnd.google-earth.kml+xml');
+    flash('Map file downloaded.');
+  });
+  el.csv.addEventListener('click', function () {
+    download('s20-' + slug(job().name) + '.csv', buildCSV(), 'text/csv');
+    flash('Spreadsheet downloaded.');
+  });
+  el.share.addEventListener('click', function () {
+    var j = job(), text = buildSummary(), files = [];
+    try { files.push(new File([buildCSV()], 's20-' + slug(j.name) + '.csv', { type: 'text/csv' })); } catch (e) { files = []; }
+    var jobs = [];
+    j.positions.forEach(function (p) {
+      p.points.forEach(function (pt, i) {
+        if (!pt.photo) return;
+        jobs.push(photoDB.get(pt.id).then(function (b) { if (b) files.push(new File([b], photoName(j, p, pt, i), { type: 'image/jpeg' })); }).catch(function () {}));
+      });
+    });
+    Promise.all(jobs).then(function () {
+      var data = { title: 'S20 reach check: ' + (j.name || 'site'), text: text };
+      if (files.length && navigator.canShare && navigator.canShare({ files: files })) data.files = files;
+      if (navigator.share) {
+        navigator.share(data).then(function () { flash('Sent.'); }).catch(function (e) {
+          if (e && e.name === 'AbortError') return;
+          fallbackShare(text);
+        });
+      } else fallbackShare(text);
+    });
+  });
+  function fallbackShare(text) {
+    download('s20-' + slug(job().name) + '.csv', buildCSV(), 'text/csv');
+    if (navigator.clipboard) navigator.clipboard.writeText(text).catch(function () {});
+    flash('Sharing isn’t available here, so the spreadsheet was downloaded and the summary copied.');
+  }
+
+  // ---------- App shell ----------
+  var deferredInstall = null;
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferredInstall = e; el.install.hidden = false; });
+  el.install.addEventListener('click', function () {
+    if (!deferredInstall) return;
+    deferredInstall.prompt();
+    deferredInstall.userChoice.finally(function () { deferredInstall = null; el.install.hidden = true; });
+  });
+  function netState() { el.offline.hidden = navigator.onLine !== false; }
+  window.addEventListener('online', netState); window.addEventListener('offline', netState);
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {});
+
+  netState();
+  fillForm();
+  renderAll();
+  update();
+})();
+</script>
+</body>
+</html>
